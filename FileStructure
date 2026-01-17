@@ -4,12 +4,10 @@ backend/
   requirements.txt
   Dockerfile
   app/
-    __init__.py
     main.py
     config.py
     models.py
     cache.py
     facility_provider.py
-    chooseShortest.py
     scoring.py
     elevenlabs_client.py
