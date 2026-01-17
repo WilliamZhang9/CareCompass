@@ -11,13 +11,10 @@ app = FastAPI(title="Montreal Care Router")
 
 cache = TTLCache(settings.cache_ttl_seconds)
 tts = ElevenLabsClient()
-
-# If you want everything through Gumloop, remove this and implement POI discovery in Gumloop too.
 facility_provider = FacilityProvider()
 
 
 def _cache_key(req: RecommendRequest) -> str:
-    # bucket by minute to avoid hammering APIs
     lat = round(req.lat, 4)
     lng = round(req.lng, 4)
     return f"{lat}:{lng}:{req.severity}:{req.mode}:{req.radius_m}"
@@ -25,17 +22,12 @@ def _cache_key(req: RecommendRequest) -> str:
 
 @app.post("/recommend", response_model=RecommendResponse)
 async def recommend(req: RecommendRequest):
-    # Safety note (not medical advice): for severe emergencies call local emergency services.
-    if req.severity == "high":
-        # still proceed, but your frontend should show emergency disclaimer
-        pass
-
     key = _cache_key(req)
     cached = cache.get(key)
     if cached and not req.include_tts:
         return cached
 
-    # 1) facilities
+    # 1) Find facilities
     hospitals = await facility_provider.nearby(req.lat, req.lng, req.radius_m, "hospital")
     clinics = []
     if req.severity == "low":
@@ -45,22 +37,15 @@ async def recommend(req: RecommendRequest):
     if not candidates:
         raise HTTPException(404, "No facilities found in radius")
 
-    # 2) travel times via Gumloop in a single flow run (batched)
-    origin = f"{req.lat},{req.lng}"
-    destinations = [f"{f.lat},{f.lng}" for f in candidates]
-
+    # 2) Travel times using Google Maps directly
     durations = await facility_provider.travel_times(
-    req.lat, req.lng, candidates, req.mode
-)
+        req.lat, req.lng, candidates, req.mode
+    )
 
-    if raw is None:
-        raise HTTPException(500, f"Gumloop outputs missing durations_seconds: {outputs}")
-
-    durations = json.loads(raw) if isinstance(raw, str) else raw
     if not isinstance(durations, list) or len(durations) != len(candidates):
-        raise HTTPException(500, "Gumloop durations shape mismatch")
+        raise HTTPException(500, "Travel time result mismatch")
 
-    # 3) score = travel + wait
+    # 3) Score = travel + wait
     scored: list[FacilityScore] = []
     for f, travel_s in zip(candidates, durations):
         travel_s = int(travel_s)
