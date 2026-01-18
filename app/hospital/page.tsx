@@ -253,7 +253,7 @@ export default function HospitalDashboard() {
                     min="0"
                     value={waitMinutes}
                     onChange={(e) => setWaitMinutes(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                     required
                   />
                 </div>
@@ -281,7 +281,7 @@ export default function HospitalDashboard() {
                   <select
                     value={erStatus}
                     onChange={(e) => setErStatus(e.target.value as ERStatus)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                   >
                     <option value="Normal">Normal</option>
                     <option value="Busy">Busy</option>
@@ -297,7 +297,7 @@ export default function HospitalDashboard() {
                   <select
                     value={staffing}
                     onChange={(e) => setStaffing(e.target.value as StaffingLevel)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                   >
                     <option value="Normal">Normal</option>
                     <option value="Short-staffed">Short-staffed</option>
@@ -314,7 +314,7 @@ export default function HospitalDashboard() {
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent resize-none"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent resize-none"
                     placeholder="Any additional information..."
                   />
                 </div>
@@ -373,7 +373,7 @@ export default function HospitalDashboard() {
                   <select
                     value={urgencyFilter}
                     onChange={(e) => setUrgencyFilter(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                   >
                     <option value="All">All</option>
                     <option value="4-5">4–5 (Critical)</option>
@@ -388,7 +388,7 @@ export default function HospitalDashboard() {
                   <select
                     value={timeFilter}
                     onChange={(e) => setTimeFilter(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                   >
                     <option value="All">All</option>
                     <option value="15m">Last 15m</option>
