@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import { elevenLabsVoice } from '../lib/elevenlabs';
+import { useTTS } from '../lib/hooks/useTTS';
+import type { SpeechPayload } from '../lib/voice/types';
 import { GoogleMaps } from '../components/google-maps';
 
 interface Hospital {
@@ -149,10 +150,25 @@ export default function EmergencyMap() {
     }
   };
 
+  const { speak } = useTTS();
+  
   const handleSpeak = async (text: string) => {
     setSpeaking(true);
     try {
-      await elevenLabsVoice.speak(text);
+      // Convert plain text to SpeechPayload format
+      const payload: SpeechPayload = {
+        type: "caregiver_summary",
+        locale: "en",
+        voice: "calm",
+        data: {
+          severity: "moderate", // Default since we don't have severity info here
+          facilityName: selectedHospital?.name || "",
+          facilityType: selectedHospital?.type || "emergency",
+          etaMin: selectedHospital?.eta,
+          address: selectedHospital?.address,
+        },
+      };
+      await speak(payload);
     } catch (error) {
       console.error('Speech error:', error);
     } finally {
@@ -382,11 +398,8 @@ export default function EmergencyMap() {
 
               {/* Voice Button */}
               <button
-                onClick={() => {
-                  const info = `${selectedHospital.name} is ${selectedHospital.distance} kilometers away, approximately ${selectedHospital.eta} minutes drive time. They have ${selectedHospital.services.length} main services including ${selectedHospital.services.slice(0, 2).join(' and ')}. Current wait time is ${selectedHospital.waitTime} minutes.`;
-                  handleSpeak(info);
-                }}
-                disabled={speaking}
+                onClick={handleSpeak}
+                disabled={speaking || !selectedHospital}
                 className="mt-4 flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-all disabled:opacity-50"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">

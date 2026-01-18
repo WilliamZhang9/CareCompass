@@ -1,6 +1,11 @@
 /**
- * ElevenLabs Voice Integration
- * Text-to-speech for medical information
+ * @deprecated This file uses client-side ElevenLabs API calls and is no longer used.
+ * All TTS functionality has been migrated to server-side /api/tts route using:
+ * - useTTS hook for client-side usage
+ * - SpeechPayload structured format
+ * - Server-side API key management
+ * 
+ * This file is kept for reference only and may be removed in a future version.
  */
 
 interface TextToSpeechOptions {

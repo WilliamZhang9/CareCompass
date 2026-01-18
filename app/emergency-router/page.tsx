@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { VoiceInputButton } from "@/app/components/voice-input-button";
-import { voiceOutput } from "@/app/lib/voice";
+import { useTTS } from "@/app/lib/hooks/useTTS";
+import type { SpeechPayload } from "@/app/lib/voice/types";
 
 // Constants
 const MCGILL_LOCATION = {
@@ -82,6 +83,8 @@ export default function EmergencyRouter() {
   const [recommendationResult, setRecommendationResult] =
     useState<RecommendationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  const { speak } = useTTS();
 
   const [userLocation, setUserLocation] = useState<{
     lat: number;
@@ -171,14 +174,24 @@ export default function EmergencyRouter() {
       const data = await response.json();
       setRecommendationResult(data.data);
 
-      // Voice guidance
+      // Voice guidance using ElevenLabs TTS
       const facility = data.data.recommended_facility;
-      const voiceGuidance = 
-        `Go to ${facility.name}. ` +
-        `It is ${facility.distance_miles} miles away with an estimated arrival time of ${facility.estimated_eta_minutes} minutes. ` +
-        `Expected wait time is about ${facility.estimated_wait_minutes} minutes.`;
+      const severityLevel = data.data.severity <= 2 ? "low" : data.data.severity <= 4 ? "moderate" : "high";
       
-      voiceOutput.speak(voiceGuidance);
+      const payload: SpeechPayload = {
+        type: "caregiver_summary",
+        locale: "en",
+        voice: "calm",
+        data: {
+          severity: severityLevel,
+          facilityName: facility.name,
+          facilityType: facility.type,
+          etaMin: facility.estimated_eta_minutes,
+          address: facility.address,
+        },
+      };
+      
+      await speak(payload);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     }
