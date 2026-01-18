@@ -74,7 +74,6 @@ export function GoogleMaps({ hospitals, onMarkerClick }: GoogleMapsProps) {
           map: map,
           title: hospital.name,
           icon: icon,
-          scale: 1.5,
         });
 
         // Create info window content

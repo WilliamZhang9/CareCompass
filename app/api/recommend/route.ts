@@ -142,14 +142,18 @@ export async function scoreFacilities(
 ): Promise<FacilityWithScore[]> {
   const timeOfDay = getTimeOfDay();
 
-  // Filter facilities by type needed
-  const candidates = MOCK_FACILITIES.filter(
-    (f) =>
-      f.type === input.facility_type_needed ||
-      (input.facility_type_needed === "emergency" && f.type === "emergency") ||
-      (input.facility_type_needed === "urgent_care" &&
-        (f.type === "urgent_care" || f.type === "emergency"))
-  );
+  // Determine recommended facility type based on severity
+  let recommendedType: "emergency" | "urgent_care" | "clinic";
+  if (input.severity >= 4) {
+    recommendedType = "emergency";
+  } else if (input.severity === 3) {
+    recommendedType = "urgent_care";
+  } else {
+    recommendedType = "clinic";
+  }
+
+  // Only consider facilities matching the recommended type
+  const candidates = MOCK_FACILITIES.filter((f) => f.type === recommendedType);
 
   const scored = candidates.map((facility) => {
     const distance = calculateDistance(
@@ -163,23 +167,22 @@ export async function scoreFacilities(
     const waitTime = facility.estimated_wait_minutes || 15;
     const totalTime = eta + waitTime;
 
-    // Scoring formula (weighted)
-    // Distance/ETA: 40%, Wait time: 30%, Facility match: 20%, Type match: 10%
+    // New scoring: total time is dominant (lower is better), type/severity are minor bonuses
+    // Score is out of 100, higher is better
+    // 80% weight: total time (lower = higher score)
+    // 10% weight: facility type match
+    // 10% weight: severity match
     let score = 0;
 
-    // Normalize ETA (max 30 min = 100%)
-    const etaScore = Math.max(0, 100 - (eta / 30) * 100);
-    score += etaScore * 0.4;
+    // Normalize total time: 0 min = 100, 60 min or more = 0
+    const totalTimeScore = Math.max(0, 100 - (totalTime / 60) * 100);
+    score += totalTimeScore * 0.8;
 
-    // Normalize wait time (max 60 min = 100%)
-    const waitScore = Math.max(0, 100 - (waitTime / 60) * 100);
-    score += waitScore * 0.3;
-
-    // Facility type match
+    // Facility type match (10%)
     const typeMatchScore = facility.type === input.facility_type_needed ? 100 : 75;
-    score += typeMatchScore * 0.2;
+    score += typeMatchScore * 0.1;
 
-    // Severity appropriateness
+    // Severity appropriateness (10%)
     const severityMatchScore =
       input.severity >= 4 && facility.type === "emergency"
         ? 100
@@ -191,11 +194,16 @@ export async function scoreFacilities(
     score += severityMatchScore * 0.1;
 
     const reasoning: string[] = [];
-    if (distance < 2) reasoning.push(`Very close (${distance.toFixed(1)} miles)`);
-    if (eta < 10) reasoning.push("Quick ETA");
-    if (waitTime < 20) reasoning.push("Low wait time");
+    reasoning.push(`Total time to care: ${totalTime} min`);
     if (facility.type === input.facility_type_needed)
       reasoning.push("Matches facility type needed");
+    if (
+      (input.severity >= 4 && facility.type === "emergency") ||
+      (input.severity <= 2 && facility.type === "clinic") ||
+      (input.severity === 3 && facility.type === "urgent_care")
+    ) {
+      reasoning.push("Matches severity");
+    }
 
     return {
       ...facility,
