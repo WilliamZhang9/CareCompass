@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import ShinyText from "@/components/ui/ShinyText";
 
 export default function Home() {
   return (
@@ -37,8 +38,18 @@ export default function Home() {
         <div className="text-center max-w-3xl mx-auto space-y-8">
           {/* Badge */}
           <div className="flex justify-center">
-            <span className="px-4 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-900 border border-gray-200">
-              AI-Powered Triage
+            <span className="px-4 py-1.5 rounded-full text-sm font-medium bg-gray-100 border border-gray-200">
+              <ShinyText
+                text="AI-Powered Triage"
+                speed={2}
+                delay={0}
+                color="#b5b5b5"
+                shineColor="#ffffff"
+                spread={120}
+                direction="left"
+                yoyo={false}
+                pauseOnHover={false}
+              />
             </span>
           </div>
 
@@ -220,30 +231,63 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 py-12">
+      <footer className="bg-gray-50 border-t border-gray-200 py-10 mt-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-8 mb-8">
-            <div>
-              <h4 className="font-semibold mb-3 text-gray-900">CareCompass</h4>
-              <p className="text-sm text-gray-600">AI-powered medical triage for Montreal</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mb-8">
+            {/* Brand Section */}
+            <div className="space-y-3">
+              <h4 className="text-lg font-semibold text-gray-900">CareCompass</h4>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                AI-powered medical triage for Montreal
+              </p>
+              <p className="text-xs text-gray-500">
+                Montreal, QC
+              </p>
             </div>
-            <div>
-              <h4 className="font-semibold mb-3 text-gray-900">Quick Links</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li><Link href="/ai-triage" className="hover:text-gray-900">AI Triage</Link></li>
-                <li><Link href="/emergency-map" className="hover:text-gray-900">Hospital Map</Link></li>
-              </ul>
+
+            {/* Quick Links Section */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+                Quick Links
+              </h4>
+              <nav aria-label="Footer navigation">
+                <ul className="space-y-2">
+                  <li>
+                    <Link
+                      href="/ai-triage"
+                      className="text-sm text-gray-600 hover:text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 rounded"
+                    >
+                      AI Triage
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/emergency-map"
+                      className="text-sm text-gray-600 hover:text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 rounded"
+                    >
+                      Hospital Map
+                    </Link>
+                  </li>
+                </ul>
+              </nav>
             </div>
-            <div>
-              <h4 className="font-semibold mb-3 text-gray-900">Disclaimer</h4>
-              <p className="text-sm text-gray-600">
+
+            {/* Disclaimer Section */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
+                Disclaimer
+              </h4>
+              <p className="text-sm text-gray-500 leading-relaxed">
                 For informational use only. Always consult medical professionals.
               </p>
             </div>
           </div>
-          
-          <div className="border-t border-gray-200 pt-8 text-center text-sm text-gray-600">
-            <p>&copy; 2026 CareCompass. All rights reserved.</p>
+
+          {/* Copyright Section */}
+          <div className="border-t border-gray-200 pt-6">
+            <p className="text-xs text-center text-gray-500">
+              &copy; 2026 CareCompass. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>

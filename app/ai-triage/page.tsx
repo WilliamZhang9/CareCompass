@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MicButton } from "../components/MicButton";
+import ShinyText from "@/components/ui/ShinyText";
 
 const STORAGE_KEY = "carecompass:triageDraft";
 
@@ -151,8 +152,18 @@ export default function Home() {
           <div className="w-full max-w-3xl flex flex-col items-center gap-8">
             {/* Badge */}
             <div className="flex justify-center">
-              <span className="px-4 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-900 border border-gray-200">
-                AI-Powered Triage
+              <span className="px-4 py-1.5 rounded-full text-sm font-medium bg-gray-100 border border-gray-200">
+                <ShinyText
+                  text="AI-Powered Triage"
+                  speed={2}
+                  delay={0}
+                  color="#b5b5b5"
+                  shineColor="#ffffff"
+                  spread={120}
+                  direction="left"
+                  yoyo={false}
+                  pauseOnHover={false}
+                />
               </span>
             </div>
 
