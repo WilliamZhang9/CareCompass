@@ -16,25 +16,68 @@ interface GoogleMapsProps {
   onMarkerClick?: (hospitalId: string) => void;
 }
 
+// Global flag to prevent multiple script loads
+let googleMapsScriptLoading = false;
+let googleMapsScriptLoaded = false;
+const googleMapsCallbacks: (() => void)[] = [];
+
+function loadGoogleMapsScript(callback: () => void) {
+  // If already loaded, call callback immediately
+  if (googleMapsScriptLoaded && window.google?.maps) {
+    callback();
+    return;
+  }
+
+  // Add callback to queue
+  googleMapsCallbacks.push(callback);
+
+  // If already loading, just wait for it
+  if (googleMapsScriptLoading) {
+    return;
+  }
+
+  // Check if script tag already exists
+  const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+  if (existingScript) {
+    // Script exists, wait for it to load
+    if (window.google?.maps) {
+      googleMapsScriptLoaded = true;
+      googleMapsCallbacks.forEach(cb => cb());
+      googleMapsCallbacks.length = 0;
+    } else {
+      existingScript.addEventListener('load', () => {
+        googleMapsScriptLoaded = true;
+        googleMapsCallbacks.forEach(cb => cb());
+        googleMapsCallbacks.length = 0;
+      });
+    }
+    return;
+  }
+
+  // Start loading
+  googleMapsScriptLoading = true;
+  const script = document.createElement('script');
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`;
+  script.async = true;
+  script.defer = true;
+  script.onload = () => {
+    googleMapsScriptLoaded = true;
+    googleMapsScriptLoading = false;
+    googleMapsCallbacks.forEach(cb => cb());
+    googleMapsCallbacks.length = 0;
+  };
+  document.head.appendChild(script);
+}
+
 export function GoogleMaps({ hospitals, onMarkerClick }: GoogleMapsProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<Map<string, google.maps.Marker>>(new Map());
 
   useEffect(() => {
-    // Check if Google Maps API is loaded
-    if (!window.google?.maps) {
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => {
-        initializeMap();
-      };
-      document.head.appendChild(script);
-    } else {
+    loadGoogleMapsScript(() => {
       initializeMap();
-    }
+    });
 
     function initializeMap() {
       if (!mapRef.current) return;
