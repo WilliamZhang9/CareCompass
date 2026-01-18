@@ -27,6 +27,8 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <NextChatSDKBootstrap baseUrl={baseURL} />
+        {/* Athena AI Chatbot Widget */}
+        <script src="https://athenachat.bot/chatbot/widget/carecompass4577"></script>
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
