@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { baseURL } from "@/baseUrl";
 
@@ -28,7 +29,11 @@ export default function RootLayout({
       <head>
         <NextChatSDKBootstrap baseUrl={baseURL} />
         {/* Athena AI Chatbot Widget */}
-        <script src="https://athenachat.bot/chatbot/widget/carecompass4577"></script>
+        <Script 
+          src="https://athenachat.bot/chatbot/widget/carecompass4577" 
+          strategy="afterInteractive"
+          async
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
