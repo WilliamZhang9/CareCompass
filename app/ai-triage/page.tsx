@@ -80,9 +80,9 @@ export default function AITriagePage() {
         urgency = 'Moderate';
         response = 'Your symptoms suggest moderate concern. Moderate care would be appropriate, such as an urgent care center or clinic visit.';
       } else {
-        score = 2;
-        urgency = 'Mild';
-        response = 'Based on what you\'ve described, this appears to be a minor concern. A clinic visit or home care may be sufficient.';
+        score = 1;
+        urgency = 'Not Related';
+        response = 'The information you provided does not appear to be related to a medical concern. If you have health-related symptoms, please describe them specifically so I can provide proper guidance.';
       }
 
       // Add AI response with score

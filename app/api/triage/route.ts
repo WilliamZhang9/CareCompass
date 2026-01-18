@@ -50,9 +50,33 @@ function triageSymptoms(input: TriageInput): TriageResult {
     symptomsLower.includes(flag)
   );
 
-  let baseSeverity = input.severity_self_report || 3;
+  // Keywords to identify if symptoms are health-related
+  const healthRelatedKeywords = [
+    'pain', 'fever', 'cough', 'headache', 'nausea', 'fatigue',
+    'severe', 'bleeding', 'chest', 'breath', 'dizzy', 'vomiting',
+    'seizure', 'stroke', 'trauma', 'injury', 'illness', 'sick',
+    'symptom', 'disease', 'medical', 'health', 'hurt', 'ache'
+  ];
+
+  const isHealthRelated = healthRelatedKeywords.some(keyword => 
+    symptomsLower.includes(keyword)
+  );
+
+  let baseSeverity: 1 | 2 | 3 | 4 | 5 = isHealthRelated ? (input.severity_self_report || 2) : 1;
   let facilityType: "emergency" | "urgent_care" | "clinic" = "clinic";
   let reasoning: string[] = [];
+
+  // If not health-related, return minimal urgency
+  if (!isHealthRelated) {
+    return {
+      severity: 1,
+      facility_type: "clinic",
+      red_flags: [],
+      reasoning: "Input does not appear to be related to a medical concern",
+      recommendation: "Please describe a health-related concern for proper guidance",
+      should_call_911: false,
+    };
+  }
 
   // Rule 1: Critical red flags → Emergency + 911
   if (detectedRedFlags.length > 0) {
