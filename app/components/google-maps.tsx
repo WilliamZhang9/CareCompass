@@ -140,12 +140,13 @@ export function GoogleMaps({ hospitals, onMarkerClick }: GoogleMapsProps) {
       ref={mapRef}
       style={{
         width: '100%',
-        height: '400px',
+        height: '100%',
         borderRadius: '12px',
         overflow: 'hidden',
       }}
     />
   );
+
 }
 
 declare global {

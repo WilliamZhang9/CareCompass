@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { GoogleMaps } from '../components/google-maps';
@@ -25,7 +25,7 @@ const HOSPITALS: Hospital[] = [
     id: 'royal-victoria',
     name: 'Royal Victoria Hospital',
     type: 'emergency',
-    lat: 45.5020,
+    lat: 45.502,
     lng: -73.5791,
     distance: 0.6,
     eta: 4,
@@ -39,8 +39,8 @@ const HOSPITALS: Hospital[] = [
     id: 'mcgill-health',
     name: 'McGill Health Centre',
     type: 'emergency',
-    lat: 45.4950,
-    lng: -73.5650,
+    lat: 45.495,
+    lng: -73.565,
     distance: 1.5,
     eta: 8,
     rating: 4.5,
@@ -53,8 +53,8 @@ const HOSPITALS: Hospital[] = [
     id: 'jewish-general',
     name: 'Jewish General Hospital',
     type: 'emergency',
-    lat: 45.4870,
-    lng: -73.6120,
+    lat: 45.487,
+    lng: -73.612,
     distance: 2.1,
     eta: 12,
     rating: 4.3,
@@ -67,8 +67,8 @@ const HOSPITALS: Hospital[] = [
     id: 'hopital-general',
     name: 'Hôpital Général de Montréal',
     type: 'urgent_care',
-    lat: 45.5090,
-    lng: -73.5750,
+    lat: 45.509,
+    lng: -73.575,
     distance: 0.9,
     eta: 5,
     rating: 4.2,
@@ -81,8 +81,8 @@ const HOSPITALS: Hospital[] = [
     id: 'hopital-saint-luc',
     name: 'Hôpital Saint-Luc',
     type: 'urgent_care',
-    lat: 45.5140,
-    lng: -73.5680,
+    lat: 45.514,
+    lng: -73.568,
     distance: 1.2,
     eta: 7,
     rating: 4.0,
@@ -95,8 +95,8 @@ const HOSPITALS: Hospital[] = [
     id: 'mcgill-clinic',
     name: 'McGill Clinic Downtown',
     type: 'clinic',
-    lat: 45.5030,
-    lng: -73.5780,
+    lat: 45.503,
+    lng: -73.578,
     distance: 0.8,
     eta: 5,
     rating: 4.3,
@@ -109,8 +109,8 @@ const HOSPITALS: Hospital[] = [
     id: 'downtown-clinic',
     name: 'Downtown Medical Clinic',
     type: 'clinic',
-    lat: 45.5080,
-    lng: -73.5720,
+    lat: 45.508,
+    lng: -73.572,
     distance: 1.3,
     eta: 8,
     rating: 4.1,
@@ -170,22 +170,18 @@ const getSeverityInfo = (score: number) => {
 };
 
 const getRecommendedHospitals = (score: number): Hospital[] => {
-  const severity = getSeverityInfo(score);
-  
-  // Filter hospitals by type
-  let filtered = HOSPITALS.filter(h => {
+  const filtered = HOSPITALS.filter((h) => {
     if (score <= 2) return h.type === 'clinic';
     if (score === 3) return h.type === 'urgent_care' || h.type === 'clinic';
     return h.type === 'emergency' || h.type === 'urgent_care';
   });
 
-  // Sort by distance
   return filtered.sort((a, b) => a.distance - b.distance);
 };
 
 function TriageResultsContent() {
   const searchParams = useSearchParams();
-  const score = searchParams.get('score') ? parseInt(searchParams.get('score')!) : null;
+  const score = searchParams.get('score') ? parseInt(searchParams.get('score')!, 10) : null;
   const severity = getSeverityInfo(score || 0);
   const hospitals = getRecommendedHospitals(score || 0);
   const [selectedHospital, setSelectedHospital] = useState<Hospital | null>(hospitals[0] || null);
@@ -211,20 +207,21 @@ function TriageResultsContent() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-100 rounded-lg">
                 <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
               <h1 className="text-2xl font-bold text-gray-900">Triage Results</h1>
             </div>
-            <Link
-              href="/ai-triage"
-              className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-2"
-            >
+            <Link href="/ai-triage" className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-2">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
@@ -235,174 +232,189 @@ function TriageResultsContent() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Severity Badge */}
-        <div className={`${severity.bgColor} ${severity.borderColor} border-2 rounded-2xl p-8 mb-8`}>
-          <div className="flex items-start gap-6">
-            <div className={`text-5xl font-bold`}>{severity.icon}</div>
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <h2 className={`text-3xl font-bold ${severity.textColor}`}>{severity.label}</h2>
-                <span className={`text-2xl font-bold ${severity.textColor}`}>{score}/5</span>
+      <div className="w-full px-2 lg:px-4 py-6">
+        {/* 3-Column Layout (fills the page now that top card is removed) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch min-h-0 lg:h-[calc(100vh-140px)]">
+          {/* Middle (Map) */}
+          <div className="lg:col-span-7 order-1 lg:order-2 flex justify-center h-full min-h-0">
+            <div className="w-full h-full min-h-0 flex flex-col">
+              <div className="bg-white rounded-2xl shadow-lg p-6 h-full min-h-0 flex flex-col">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-gray-900">Nearby Facilities</h3>
+                  <span
+                    className={`text-xs font-bold px-3 py-1 rounded-full ${
+                      score === 5
+                        ? 'bg-red-100 text-red-700'
+                        : score === 4
+                        ? 'bg-orange-100 text-orange-700'
+                        : score === 3
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : 'bg-green-100 text-green-700'
+                    }`}
+                  >
+                    {severity.label} • {score}/5
+                  </span>
+                </div>
+
+                {/* Map wrapper */}
+                <div className="w-full h-full min-h-0 overflow-hidden rounded-xl">
+                  <div className="w-full h-full min-h-0">
+                    <GoogleMaps
+                      hospitals={hospitals}
+                      onMarkerClick={(hospitalId) => {
+                        const hospital = hospitals.find((h) => h.id === hospitalId);
+                        if (hospital) setSelectedHospital(hospital);
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
-              <p className={`text-lg ${severity.textColor} mb-2`}>{severity.description}</p>
+            </div>
+          </div>
+
+          {/* Left - Recommended Facilities (scrollable) */}
+          <div className="lg:col-span-3 order-2 lg:order-1 h-full min-h-0">
+            <div className="bg-white rounded-2xl shadow-lg p-8 h-full min-h-0 flex flex-col">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Recommended Facilities</h3>
+
+              {/* CHANGED: pr-2 -> pr-6 to give breathing room from scrollbar */}
+              <div className="flex-1 min-h-0 overflow-y-auto pr-6 space-y-4">
+                {hospitals.map((hospital) => (
+                  <div
+                    key={hospital.id}
+                    onClick={() => setSelectedHospital(hospital)}
+                    className={`p-6 rounded-xl border-2 cursor-pointer transition-all ${
+                      selectedHospital?.id === hospital.id
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h4 className="text-lg font-bold text-gray-900">{hospital.name}</h4>
+                        <p className="text-sm text-gray-600 mt-1">{hospital.address}</p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {[...Array(5)].map((_, i) => (
+                          <span key={i} className={i < Math.round(hospital.rating) ? '⭐' : '☆'} />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* CHANGED: add min-w-0 on each cell to avoid weird squeeze near scrollbar */}
+                    <div className="grid grid-cols-4 gap-4 mb-4">
+                      <div className="min-w-0">
+                        <p className="text-xs text-gray-600 font-semibold">DISTANCE</p>
+                        <p className="text-lg font-bold text-gray-900">{hospital.distance} km</p>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs text-gray-600 font-semibold">ETA</p>
+                        <p className="text-lg font-bold text-gray-900">{hospital.eta} min</p>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs text-gray-600 font-semibold">WAIT TIME</p>
+                        <p className="text-lg font-bold text-gray-900">{hospital.waitTime} min</p>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs text-gray-600 font-semibold">TYPE</p>
+                        <p className="text-lg font-bold text-gray-900 capitalize">{hospital.type.replace('_', ' ')}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {hospital.services.slice(0, 3).map((service) => (
+                        <span
+                          key={service}
+                          className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full"
+                        >
+                          {service}
+                        </span>
+                      ))}
+                      {hospital.services.length > 3 && (
+                        <span className="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-semibold rounded-full">
+                          +{hospital.services.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Right */}
+          <div className="lg:col-span-2 order-3 h-full min-h-0">
+            <div className="h-full min-h-0 overflow-y-auto space-y-6 pr-1">
+              <div className="bg-white rounded-2xl shadow-lg p-8">
+                <h4 className="text-lg font-bold text-gray-900 mb-4">Assessment Summary</h4>
+
+                {/* CHANGED: items-start + gap-4 on each row to prevent label/value "sticking" */}
+                <div className="space-y-4 text-sm">
+                  <div className="flex items-start justify-between gap-4">
+                    <span className="text-gray-600">Urgency Level</span>
+                    <span className="font-bold text-gray-900 text-right">{severity.label}</span>
+                  </div>
+                  <div className="flex items-start justify-between gap-4">
+                    <span className="text-gray-600">Score</span>
+                    <span className="font-bold text-gray-900 text-right">{score}/5</span>
+                  </div>
+                  <div className="flex items-start justify-between gap-4">
+                    <span className="text-gray-600">Recommended Facility</span>
+                    <span className="font-bold text-gray-900 capitalize text-right">
+                      {severity.recommendedType.replace('_', ' ')}
+                    </span>
+                  </div>
+                  <div className="flex items-start justify-between gap-4">
+                    <span className="text-gray-600">Closest Option</span>
+                    <span className="font-bold text-gray-900 text-right">{hospitals[0]?.distance} km away</span>
+                  </div>
+                </div>
+              </div>
+
+              {selectedHospital && (
+                <div className="bg-white rounded-2xl shadow-lg p-8">
+                  <h4 className="text-lg font-bold text-gray-900 mb-4">{selectedHospital.name}</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-xs text-gray-600 font-semibold mb-1">PHONE</p>
+                      <a href={`tel:${selectedHospital.phone}`} className="text-blue-600 hover:underline font-medium">
+                        {selectedHospital.phone}
+                      </a>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-600 font-semibold mb-1">ADDRESS</p>
+                      <p className="text-gray-900">{selectedHospital.address}</p>
+                    </div>
+                    <div className="pt-4">
+                      <a
+                        href={`https://www.google.com/maps/search/${encodeURIComponent(selectedHospital.address)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full block text-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                      >
+                        Get Directions
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {score === 5 && (
-                <div className="mt-4 flex items-center gap-2">
-                  <div className="flex-1 bg-red-300 h-1 rounded-full"></div>
-                  <span className="text-red-700 font-bold">EMERGENCY</span>
+                <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-8">
+                  <h4 className="text-lg font-bold text-red-900 mb-4">🚨 Emergency Action</h4>
+                  <a
+                    href="tel:911"
+                    className="w-full block text-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-bold text-lg mb-4"
+                  >
+                    Call 911
+                  </a>
+                  <p className="text-sm text-red-800">
+                    Your symptoms require immediate emergency services. Please call 911 or your local emergency number.
+                  </p>
                 </div>
               )}
             </div>
           </div>
-        </div>
-
-        {/* Top Section: Hospital List + Assessment Summary */}
-        <div className="grid lg:grid-cols-2 gap-8 mb-8">
-          {/* Left - Hospital List */}
-          <div className="bg-white rounded-2xl shadow-lg p-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">Recommended Facilities</h3>
-            
-            <div className="space-y-4">
-              {hospitals.map((hospital) => (
-                <div
-                  key={hospital.id}
-                  onClick={() => setSelectedHospital(hospital)}
-                  className={`p-6 rounded-xl border-2 cursor-pointer transition-all ${
-                    selectedHospital?.id === hospital.id
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 bg-gray-50 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h4 className="text-lg font-bold text-gray-900">{hospital.name}</h4>
-                      <p className="text-sm text-gray-600 mt-1">{hospital.address}</p>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {[...Array(5)].map((_, i) => (
-                        <span key={i} className={i < Math.round(hospital.rating) ? '⭐' : '☆'} />
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-4 gap-4 mb-4">
-                    <div>
-                      <p className="text-xs text-gray-600 font-semibold">DISTANCE</p>
-                      <p className="text-lg font-bold text-gray-900">{hospital.distance} km</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600 font-semibold">ETA</p>
-                      <p className="text-lg font-bold text-gray-900">{hospital.eta} min</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600 font-semibold">WAIT TIME</p>
-                      <p className="text-lg font-bold text-gray-900">{hospital.waitTime} min</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600 font-semibold">TYPE</p>
-                      <p className="text-lg font-bold text-gray-900 capitalize">{hospital.type.replace('_', ' ')}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    {hospital.services.slice(0, 3).map((service) => (
-                      <span key={service} className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
-                        {service}
-                      </span>
-                    ))}
-                    {hospital.services.length > 3 && (
-                      <span className="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-semibold rounded-full">
-                        +{hospital.services.length - 3} more
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right - Assessment Summary */}
-          <div className="space-y-6">
-            {/* Summary Card */}
-            <div className="bg-white rounded-2xl shadow-lg p-8">
-              <h4 className="text-lg font-bold text-gray-900 mb-4">Assessment Summary</h4>
-              <div className="space-y-4 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Urgency Level</span>
-                  <span className="font-bold text-gray-900">{severity.label}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Score</span>
-                  <span className="font-bold text-gray-900">{score}/5</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Recommended Facility</span>
-                  <span className="font-bold text-gray-900 capitalize">{severity.recommendedType.replace('_', ' ')}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Closest Option</span>
-                  <span className="font-bold text-gray-900">{hospitals[0]?.distance} km away</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Selected Hospital Details */}
-            {selectedHospital && (
-              <div className="bg-white rounded-2xl shadow-lg p-8">
-                <h4 className="text-lg font-bold text-gray-900 mb-4">{selectedHospital.name}</h4>
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-xs text-gray-600 font-semibold mb-1">PHONE</p>
-                    <a href={`tel:${selectedHospital.phone}`} className="text-blue-600 hover:underline font-medium">
-                      {selectedHospital.phone}
-                    </a>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-600 font-semibold mb-1">ADDRESS</p>
-                    <p className="text-gray-900">{selectedHospital.address}</p>
-                  </div>
-                  <div className="pt-4">
-                    <a
-                      href={`https://www.google.com/maps/search/${encodeURIComponent(selectedHospital.address)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full block text-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                    >
-                      Get Directions
-                    </a>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Call Emergency */}
-            {score === 5 && (
-              <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-8">
-                <h4 className="text-lg font-bold text-red-900 mb-4">🚨 Emergency Action</h4>
-                <a
-                  href="tel:911"
-                  className="w-full block text-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-bold text-lg mb-4"
-                >
-                  Call 911
-                </a>
-                <p className="text-sm text-red-800">
-                  Your symptoms require immediate emergency services. Please call 911 or your local emergency number.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Map */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Nearby Facilities</h3>
-          <GoogleMaps 
-            hospitals={hospitals}
-            onMarkerClick={(hospitalId) => {
-              const hospital = hospitals.find(h => h.id === hospitalId);
-              if (hospital) setSelectedHospital(hospital);
-            }}
-          />
         </div>
       </div>
     </div>
