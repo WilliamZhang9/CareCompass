@@ -233,7 +233,7 @@ function TriageResultsContent() {
 
       {/* Main Content */}
       <div className="w-full px-2 lg:px-4 py-6">
-        {/* 3-Column Layout (fills the page now that top card is removed) */}
+        {/* 3-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch min-h-0 lg:h-[calc(100vh-140px)]">
           {/* Middle (Map) */}
           <div className="lg:col-span-7 order-1 lg:order-2 flex justify-center h-full min-h-0">
@@ -256,7 +256,6 @@ function TriageResultsContent() {
                   </span>
                 </div>
 
-                {/* Map wrapper */}
                 <div className="w-full h-full min-h-0 overflow-hidden rounded-xl">
                   <div className="w-full h-full min-h-0">
                     <GoogleMaps
@@ -277,7 +276,6 @@ function TriageResultsContent() {
             <div className="bg-white rounded-2xl shadow-lg p-8 h-full min-h-0 flex flex-col">
               <h3 className="text-2xl font-bold text-gray-900 mb-6">Recommended Facilities</h3>
 
-              {/* CHANGED: pr-2 -> pr-6 to give breathing room from scrollbar */}
               <div className="flex-1 min-h-0 overflow-y-auto pr-6 space-y-4">
                 {hospitals.map((hospital) => (
                   <div
@@ -290,34 +288,39 @@ function TriageResultsContent() {
                     }`}
                   >
                     <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h4 className="text-lg font-bold text-gray-900">{hospital.name}</h4>
-                        <p className="text-sm text-gray-600 mt-1">{hospital.address}</p>
+                      <div className="min-w-0">
+                        <h4 className="text-lg font-bold text-gray-900 break-words">{hospital.name}</h4>
+                        <p className="text-sm text-gray-600 mt-1 break-words">{hospital.address}</p>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 flex-shrink-0">
                         {[...Array(5)].map((_, i) => (
                           <span key={i} className={i < Math.round(hospital.rating) ? '⭐' : '☆'} />
                         ))}
                       </div>
                     </div>
 
-                    {/* CHANGED: add min-w-0 on each cell to avoid weird squeeze near scrollbar */}
-                    <div className="grid grid-cols-4 gap-4 mb-4">
+                    {/* FIX: force 2 columns on all widths so DISTANCE and ETA can never collide */}
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-4 mb-4">
                       <div className="min-w-0">
-                        <p className="text-xs text-gray-600 font-semibold">DISTANCE</p>
-                        <p className="text-lg font-bold text-gray-900">{hospital.distance} km</p>
+                        <p className="text-xs text-gray-600 font-semibold whitespace-nowrap">DISTANCE</p>
+                        <p className="text-lg font-bold text-gray-900 whitespace-nowrap">{hospital.distance} km</p>
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-xs text-gray-600 font-semibold">ETA</p>
-                        <p className="text-lg font-bold text-gray-900">{hospital.eta} min</p>
+
+                      <div className="min-w-0 text-right">
+                        <p className="text-xs text-gray-600 font-semibold whitespace-nowrap">ETA</p>
+                        <p className="text-lg font-bold text-gray-900 whitespace-nowrap">{hospital.eta} min</p>
                       </div>
+
                       <div className="min-w-0">
-                        <p className="text-xs text-gray-600 font-semibold">WAIT TIME</p>
-                        <p className="text-lg font-bold text-gray-900">{hospital.waitTime} min</p>
+                        <p className="text-xs text-gray-600 font-semibold whitespace-nowrap">WAIT TIME</p>
+                        <p className="text-lg font-bold text-gray-900 whitespace-nowrap">{hospital.waitTime} min</p>
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-xs text-gray-600 font-semibold">TYPE</p>
-                        <p className="text-lg font-bold text-gray-900 capitalize">{hospital.type.replace('_', ' ')}</p>
+
+                      <div className="min-w-0 text-right">
+                        <p className="text-xs text-gray-600 font-semibold whitespace-nowrap">TYPE</p>
+                        <p className="text-lg font-bold text-gray-900 capitalize whitespace-nowrap">
+                          {hospital.type.replace('_', ' ')}
+                        </p>
                       </div>
                     </div>
 
@@ -348,7 +351,6 @@ function TriageResultsContent() {
               <div className="bg-white rounded-2xl shadow-lg p-8">
                 <h4 className="text-lg font-bold text-gray-900 mb-4">Assessment Summary</h4>
 
-                {/* CHANGED: items-start + gap-4 on each row to prevent label/value "sticking" */}
                 <div className="space-y-4 text-sm">
                   <div className="flex items-start justify-between gap-4">
                     <span className="text-gray-600">Urgency Level</span>
