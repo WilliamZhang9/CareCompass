@@ -15,8 +15,8 @@ export class ElevenLabsVoice {
   private baseUrl = 'https://api.elevenlabs.io/v1';
 
   constructor(apiKey?: string, voiceId?: string) {
-    this.apiKey = apiKey || process.env.NEXT_PUBLIC_ELEVEN_API_KEY || '';
-    this.voiceId = voiceId || process.env.NEXT_PUBLIC_ELEVEN_VOICE_ID || '';
+    this.apiKey = apiKey || process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY || '';
+    this.voiceId = voiceId || process.env.NEXT_PUBLIC_ELEVENLABS_VOICE_ID || '';
     
     if (!this.apiKey) {
       console.warn('ElevenLabs API key not configured');

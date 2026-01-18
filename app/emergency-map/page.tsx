@@ -123,66 +123,104 @@ const HOSPITALS: Hospital[] = [
 export default function EmergencyMap() {
   const [selectedHospital, setSelectedHospital] = useState<Hospital | null>(null);
   const [filter, setFilter] = useState<'all' | 'emergency' | 'urgent_care' | 'clinic'>('all');
-  const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
   const [speaking, setSpeaking] = useState(false);
+  const [mapsLoaded, setMapsLoaded] = useState(false);
 
-  // Load Google Maps
+  // Load Google Maps Script
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (window.google?.maps) {
-      setGoogleMapsLoaded(true);
+      setMapsLoaded(true);
+      return;
+    }
+
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) {
+      console.warn('Google Maps API key not configured');
+      setMapsLoaded(true);
       return;
     }
 
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
     script.async = true;
-    script.onload = () => setGoogleMapsLoaded(true);
+    script.defer = true;
+    script.onload = () => setMapsLoaded(true);
+    script.onerror = () => {
+      console.error('Failed to load Google Maps');
+      setMapsLoaded(true);
+    };
     document.head.appendChild(script);
+
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
   }, []);
 
-  // Initialize map
+  // Initialize map with fallback
   useEffect(() => {
-    if (!googleMapsLoaded) return;
-
-    const mcgillCoords = { lat: 45.5047, lng: -73.5771 };
+    if (!mapsLoaded) return;
+    
     const mapContainer = document.getElementById('hospital-map');
     if (!mapContainer) return;
 
-    const map = new google.maps.Map(mapContainer, {
-      zoom: 14,
-      center: mcgillCoords,
-      mapTypeId: 'roadmap',
-      styles: [
-        {
-          featureType: 'poi',
-          stylers: [{ visibility: 'off' }],
-        },
-      ],
-    });
+    const mcgillCoords = { lat: 45.5047, lng: -73.5771 };
 
-    // McGill marker
-    new google.maps.Marker({
-      position: mcgillCoords,
-      map,
-      title: 'McGill University (You are here)',
-      icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-    });
+    // Check if Google Maps is available
+    if (typeof window !== 'undefined' && window.google?.maps) {
+      try {
+        const map = new window.google.maps.Map(mapContainer, {
+          zoom: 14,
+          center: mcgillCoords,
+          mapTypeId: 'roadmap',
+          styles: [
+            {
+              featureType: 'poi',
+              stylers: [{ visibility: 'off' }],
+            },
+          ],
+        });
 
-    // Hospital markers
-    filteredHospitals.forEach((hospital) => {
-      const color = hospital.type === 'emergency' ? 'red' : hospital.type === 'urgent_care' ? 'orange' : 'green';
-      const marker = new google.maps.Marker({
-        position: { lat: hospital.lat, lng: hospital.lng },
-        map,
-        title: hospital.name,
-        icon: `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`,
-      });
+        // Add markers for all hospitals
+        HOSPITALS.forEach((hospital) => {
+          const marker = new window.google.maps.Marker({
+            position: { lat: hospital.lat, lng: hospital.lng },
+            map: map,
+            title: hospital.name,
+            icon: hospital.type === 'emergency' 
+              ? 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+              : hospital.type === 'urgent_care'
+              ? 'http://maps.google.com/mapfiles/ms/icons/orange-dot.png'
+              : 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+          });
 
-      marker.addListener('click', () => {
-        setSelectedHospital(hospital);
-      });
-    });
-  }, [googleMapsLoaded, filter]);
+          // Add click listener to marker
+          marker.addListener('click', () => {
+            setSelectedHospital(hospital);
+          });
+        });
+      } catch (error) {
+        console.error('Error initializing Google Map:', error);
+        renderFallbackMap(mapContainer);
+      }
+    } else {
+      // Fallback: render custom map visualization
+      renderFallbackMap(mapContainer);
+    }
+  }, []);
+
+  const renderFallbackMap = (container: HTMLElement) => {
+    container.innerHTML = `
+      <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; text-align: center;">
+        <div style="font-size: 48px; margin-bottom: 20px;">📍</div>
+        <h3 style="margin: 0 0 10px 0; font-size: 24px; font-weight: bold;">Hospital Map</h3>
+        <p style="margin: 0; opacity: 0.9;">View the hospital list on the right to see details about nearby medical facilities</p>
+        <p style="margin: 10px 0 0 0; font-size: 12px; opacity: 0.7;">(Interactive Google Map requires a valid API key)</p>
+      </div>
+    `;
+  };
 
   const filteredHospitals = HOSPITALS.filter(
     (h) => filter === 'all' || h.type === filter
