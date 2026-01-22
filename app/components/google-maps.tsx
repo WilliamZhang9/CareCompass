@@ -5,17 +5,19 @@ import { useEffect, useRef } from 'react';
 // McGill University default location
 const MCGILL_LOCATION = { lat: 45.5047, lng: -73.5771 };
 
+interface Hospital {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  type: 'emergency' | 'urgent_care' | 'clinic';
+  phone: string;
+  distance: number;
+  eta: number;
+}
+
 interface GoogleMapsProps {
-  hospitals: Array<{
-    id: string;
-    name: string;
-    lat: number;
-    lng: number;
-    type: 'emergency' | 'urgent_care' | 'clinic';
-    phone: string;
-    distance: number;
-    eta: number;
-  }>;
+  hospitals: Hospital[];
   onMarkerClick?: (hospitalId: string) => void;
   userLocation?: { lat: number; lng: number } | null;
   selectedHospitalId?: string | null;
@@ -80,6 +82,8 @@ export function GoogleMaps({ hospitals, onMarkerClick, userLocation, selectedHos
   const markersRef = useRef<Map<string, google.maps.Marker>>(new Map());
   const userMarkerRef = useRef<google.maps.Marker | null>(null);
   const infoWindowsRef = useRef<Map<string, google.maps.InfoWindow>>(new Map());
+  const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
+  const directionsServiceRef = useRef<google.maps.DirectionsService | null>(null);
 
   useEffect(() => {
     loadGoogleMapsScript(() => {
@@ -111,6 +115,18 @@ export function GoogleMaps({ hospitals, onMarkerClick, userLocation, selectedHos
       });
 
       mapInstanceRef.current = map;
+
+      // Initialize Directions Service and Renderer
+      directionsServiceRef.current = new google.maps.DirectionsService();
+      directionsRendererRef.current = new google.maps.DirectionsRenderer({
+        map: map,
+        suppressMarkers: false,
+        polylineOptions: {
+          strokeColor: '#4285F4',
+          strokeWeight: 5,
+          strokeOpacity: 0.8,
+        },
+      });
 
       // Clear existing markers
       markersRef.current.forEach(marker => marker.setMap(null));
@@ -206,10 +222,14 @@ export function GoogleMaps({ hospitals, onMarkerClick, userLocation, selectedHos
         userMarkerRef.current.setMap(null);
         userMarkerRef.current = null;
       }
+      if (directionsRendererRef.current) {
+        directionsRendererRef.current.setMap(null);
+        directionsRendererRef.current = null;
+      }
     };
   }, [hospitals, onMarkerClick, userLocation]);
 
-  // Effect to highlight selected hospital marker
+  // Effect to highlight selected hospital marker and show route
   useEffect(() => {
     if (!selectedHospitalId || !mapInstanceRef.current) return;
 
@@ -218,10 +238,6 @@ export function GoogleMaps({ hospitals, onMarkerClick, userLocation, selectedHos
     const hospital = hospitals.find(h => h.id === selectedHospitalId);
 
     if (marker && hospital) {
-      // Pan and zoom to selected marker
-      mapInstanceRef.current.panTo({ lat: hospital.lat, lng: hospital.lng });
-      mapInstanceRef.current.setZoom(15);
-
       // Close all info windows and open selected one
       infoWindowsRef.current.forEach(iw => iw.close());
       if (infoWindow) {
@@ -233,8 +249,37 @@ export function GoogleMaps({ hospitals, onMarkerClick, userLocation, selectedHos
       setTimeout(() => {
         marker.setAnimation(null);
       }, 1500);
+
+      // Draw route from user location (McGill University) to selected hospital
+      const origin = userLocation || MCGILL_LOCATION;
+      const destination = { lat: hospital.lat, lng: hospital.lng };
+
+      if (directionsServiceRef.current && directionsRendererRef.current) {
+        directionsServiceRef.current.route(
+          {
+            origin: origin,
+            destination: destination,
+            travelMode: google.maps.TravelMode.DRIVING,
+          },
+          (result, status) => {
+            if (status === google.maps.DirectionsStatus.OK && result) {
+              directionsRendererRef.current?.setDirections(result);
+
+              // Fit the map to show the entire route
+              if (result.routes[0]?.bounds) {
+                mapInstanceRef.current?.fitBounds(result.routes[0].bounds);
+              }
+            } else {
+              console.error('Directions request failed:', status);
+              // Fall back to just panning to the hospital
+              mapInstanceRef.current?.panTo(destination);
+              mapInstanceRef.current?.setZoom(15);
+            }
+          }
+        );
+      }
     }
-  }, [selectedHospitalId, hospitals]);
+  }, [selectedHospitalId, hospitals, userLocation]);
 
   return (
     <div

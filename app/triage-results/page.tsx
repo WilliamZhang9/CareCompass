@@ -292,6 +292,7 @@ function TriageResultsContent() {
                         if (hospital) setSelectedHospital(hospital);
                       }}
                       userLocation={userLocation}
+                      selectedHospitalId={selectedHospital?.id}
                     />
                   </div>
                 </div>
