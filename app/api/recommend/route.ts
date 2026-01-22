@@ -137,7 +137,7 @@ function getTimeOfDay(): "morning" | "afternoon" | "evening" | "night" {
   return "night";
 }
 
-export async function scoreFacilities(
+async function scoreFacilities(
   input: RecommendationInput
 ): Promise<FacilityWithScore[]> {
   const timeOfDay = getTimeOfDay();

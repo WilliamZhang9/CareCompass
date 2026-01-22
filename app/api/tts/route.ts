@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
     const cacheKey = getCacheKey(cacheKeyParts);
     const cached = cache.get(cacheKey);
     if (cached && Date.now() - cached.createdAt < CACHE_TTL) {
-      return new NextResponse(cached.audio, {
+      return new NextResponse(new Uint8Array(cached.audio), {
         headers: {
           "Content-Type": cached.contentType,
           "Cache-Control": "public, max-age=900", // 15 minutes
@@ -222,7 +222,7 @@ export async function POST(request: NextRequest) {
       createdAt: Date.now(),
     });
 
-    return new NextResponse(audioBuffer, {
+    return new NextResponse(new Uint8Array(audioBuffer), {
       headers: {
         "Content-Type": contentType,
         "Cache-Control": "public, max-age=900", // 15 minutes

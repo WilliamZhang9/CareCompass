@@ -6,7 +6,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { z } from "zod";
-import { geocodeLocation, searchNearbyShops } from "./osm.js";
+import { geocodeLocation, searchNearbyShops } from "./osm";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

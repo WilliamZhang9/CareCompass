@@ -37,7 +37,7 @@ function getDisclaimer(locale: Locale = "en"): string {
 }
 
 function buildRecommendationTopText(data: RecommendationTopData, locale: Locale = "en"): string {
-  const validated = validateRecommendationTopData(data);
+  const validated = validateRecommendationTopData(data as unknown as Record<string, unknown>);
   const parts: string[] = [];
 
   const facilityTypeText = validated.facilityType.replace("_", " ");
@@ -77,7 +77,7 @@ function buildRecommendationTopText(data: RecommendationTopData, locale: Locale 
 }
 
 function buildRecommendationReasonText(data: RecommendationReasonData, locale: Locale = "en"): string {
-  const validated = validateRecommendationReasonData(data);
+  const validated = validateRecommendationReasonData(data as unknown as Record<string, unknown>);
   const topReasons = validated.reasons.slice(0, 3);
   if (locale === "en") {
     return `This was recommended because: ${topReasons.join("; ")}.`;
@@ -86,7 +86,7 @@ function buildRecommendationReasonText(data: RecommendationReasonData, locale: L
 }
 
 function buildSeveritySummaryText(data: SeveritySummaryData, locale: Locale = "en"): string {
-  const validated = validateSeveritySummaryData(data);
+  const validated = validateSeveritySummaryData(data as unknown as Record<string, unknown>);
   if (locale === "en") {
     let text = `Your symptoms indicate a ${validated.severity} level of urgency.`;
     if (validated.note) {
@@ -103,7 +103,7 @@ function buildSeveritySummaryText(data: SeveritySummaryData, locale: Locale = "e
 }
 
 function buildNavigationStepText(data: NavigationStepData, locale: Locale = "en"): string {
-  const validated = validateNavigationStepData(data);
+  const validated = validateNavigationStepData(data as unknown as Record<string, unknown>);
   if (locale === "en") {
     let text = validated.instruction;
     if (validated.distanceMeters !== undefined) {
@@ -121,7 +121,7 @@ function buildNavigationStepText(data: NavigationStepData, locale: Locale = "en"
 }
 
 function buildCaregiverSummaryText(data: CaregiverSummaryData, locale: Locale = "en"): string {
-  const validated = validateCaregiverSummaryData(data);
+  const validated = validateCaregiverSummaryData(data as unknown as Record<string, unknown>);
   const parts: string[] = [];
   if (locale === "en") {
     parts.push(`Urgency level is ${validated.severity}.`);
@@ -154,19 +154,19 @@ export function buildSpeechText(payload: SpeechPayload): { text: string; cacheKe
 
   switch (type) {
     case "recommendation_top":
-      mainText = buildRecommendationTopText(data as RecommendationTopData, effectiveLocale);
+      mainText = buildRecommendationTopText(data as unknown as RecommendationTopData, effectiveLocale);
       break;
     case "recommendation_reason":
-      mainText = buildRecommendationReasonText(data as RecommendationReasonData, effectiveLocale);
+      mainText = buildRecommendationReasonText(data as unknown as RecommendationReasonData, effectiveLocale);
       break;
     case "severity_summary":
-      mainText = buildSeveritySummaryText(data as SeveritySummaryData, effectiveLocale);
+      mainText = buildSeveritySummaryText(data as unknown as SeveritySummaryData, effectiveLocale);
       break;
     case "navigation_step":
-      mainText = buildNavigationStepText(data as NavigationStepData, effectiveLocale);
+      mainText = buildNavigationStepText(data as unknown as NavigationStepData, effectiveLocale);
       break;
     case "caregiver_summary":
-      mainText = buildCaregiverSummaryText(data as CaregiverSummaryData, effectiveLocale);
+      mainText = buildCaregiverSummaryText(data as unknown as CaregiverSummaryData, effectiveLocale);
       break;
     case "disclaimer_only":
       mainText = getDisclaimer(effectiveLocale);

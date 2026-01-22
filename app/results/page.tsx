@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toUrgencyScore } from "../lib/utils/urgency";
 
-export default function Results() {
+function ResultsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<"loading" | "error" | "done">("loading");
@@ -14,7 +14,7 @@ export default function Results() {
       try {
         // Get score from query parameter
         const scoreParam = searchParams.get("score");
-        
+
         if (!scoreParam) {
           console.warn("No score provided in URL");
           router.push("/ai-triage");
@@ -64,4 +64,16 @@ export default function Results() {
   }
 
   return null;
+}
+
+export default function Results() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    }>
+      <ResultsContent />
+    </Suspense>
+  );
 }

@@ -141,7 +141,7 @@ async function fetchQuebecERData(): Promise<QuebecERData[]> {
 }
 
 // Find matching ER data for a hospital name
-export function findERDataForHospital(hospitalName: string, erData: QuebecERData[]): QuebecERData | null {
+function findERDataForHospital(hospitalName: string, erData: QuebecERData[]): QuebecERData | null {
   const normalizedSearch = normalizeHospitalName(hospitalName);
 
   // Try exact match first
