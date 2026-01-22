@@ -18,6 +18,7 @@ interface GoogleMapsProps {
   }>;
   onMarkerClick?: (hospitalId: string) => void;
   userLocation?: { lat: number; lng: number } | null;
+  selectedHospitalId?: string | null;
 }
 
 // Global flag to prevent multiple script loads
@@ -73,11 +74,12 @@ function loadGoogleMapsScript(callback: () => void) {
   document.head.appendChild(script);
 }
 
-export function GoogleMaps({ hospitals, onMarkerClick, userLocation }: GoogleMapsProps) {
+export function GoogleMaps({ hospitals, onMarkerClick, userLocation, selectedHospitalId }: GoogleMapsProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<Map<string, google.maps.Marker>>(new Map());
   const userMarkerRef = useRef<google.maps.Marker | null>(null);
+  const infoWindowsRef = useRef<Map<string, google.maps.InfoWindow>>(new Map());
 
   useEffect(() => {
     loadGoogleMapsScript(() => {
@@ -140,9 +142,7 @@ export function GoogleMaps({ hospitals, onMarkerClick, userLocation }: GoogleMap
 
         marker.addListener('click', () => {
           // Close all other info windows
-          document.querySelectorAll<HTMLElement>('.gm-style-iw').forEach(iw => {
-            iw.style.display = 'none';
-          });
+          infoWindowsRef.current.forEach(iw => iw.close());
           infoWindow.open(map, marker);
           if (onMarkerClick) {
             onMarkerClick(hospital.id);
@@ -150,6 +150,7 @@ export function GoogleMaps({ hospitals, onMarkerClick, userLocation }: GoogleMap
         });
 
         markersRef.current.set(hospital.id, marker);
+        infoWindowsRef.current.set(hospital.id, infoWindow);
       });
 
       // Add user location marker
@@ -199,12 +200,41 @@ export function GoogleMaps({ hospitals, onMarkerClick, userLocation }: GoogleMap
       // Cleanup
       markersRef.current.forEach(marker => marker.setMap(null));
       markersRef.current.clear();
+      infoWindowsRef.current.forEach(iw => iw.close());
+      infoWindowsRef.current.clear();
       if (userMarkerRef.current) {
         userMarkerRef.current.setMap(null);
         userMarkerRef.current = null;
       }
     };
   }, [hospitals, onMarkerClick, userLocation]);
+
+  // Effect to highlight selected hospital marker
+  useEffect(() => {
+    if (!selectedHospitalId || !mapInstanceRef.current) return;
+
+    const marker = markersRef.current.get(selectedHospitalId);
+    const infoWindow = infoWindowsRef.current.get(selectedHospitalId);
+    const hospital = hospitals.find(h => h.id === selectedHospitalId);
+
+    if (marker && hospital) {
+      // Pan and zoom to selected marker
+      mapInstanceRef.current.panTo({ lat: hospital.lat, lng: hospital.lng });
+      mapInstanceRef.current.setZoom(15);
+
+      // Close all info windows and open selected one
+      infoWindowsRef.current.forEach(iw => iw.close());
+      if (infoWindow) {
+        infoWindow.open(mapInstanceRef.current, marker);
+      }
+
+      // Bounce animation for selected marker
+      marker.setAnimation(google.maps.Animation.BOUNCE);
+      setTimeout(() => {
+        marker.setAnimation(null);
+      }, 1500);
+    }
+  }, [selectedHospitalId, hospitals]);
 
   return (
     <div

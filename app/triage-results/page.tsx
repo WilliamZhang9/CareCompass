@@ -24,114 +24,18 @@ interface Hospital {
   address: string;
   services: string[];
   waitTime: number;
+  waitTimeSource?: 'live' | 'estimated';
+  occupancyRate?: number;
+  waitingCount?: number;
+  isOpen?: boolean;
+  ratingCount?: number;
 }
-
-const HOSPITALS: Hospital[] = [
-  {
-    id: 'royal-victoria',
-    name: 'Royal Victoria Hospital',
-    type: 'emergency',
-    lat: 45.502,
-    lng: -73.5791,
-    distance: 0.6,
-    eta: 4,
-    rating: 4.4,
-    phone: '+1-514-934-1934',
-    address: '687 Pine Avenue W, Montreal',
-    services: ['Emergency', 'Trauma', 'Cardiology', 'Neurology'],
-    waitTime: 45,
-  },
-  {
-    id: 'mcgill-health',
-    name: 'McGill Health Centre',
-    type: 'emergency',
-    lat: 45.495,
-    lng: -73.565,
-    distance: 1.5,
-    eta: 8,
-    rating: 4.5,
-    phone: '+1-514-398-4343',
-    address: '1025 Pine Avenue W, Montreal',
-    services: ['Emergency', 'Surgery', 'Pediatrics'],
-    waitTime: 35,
-  },
-  {
-    id: 'jewish-general',
-    name: 'Jewish General Hospital',
-    type: 'emergency',
-    lat: 45.487,
-    lng: -73.612,
-    distance: 2.1,
-    eta: 12,
-    rating: 4.3,
-    phone: '+1-514-340-8222',
-    address: '3755 Côte-Sainte-Catherine Rd, Montreal',
-    services: ['Emergency', 'Oncology', 'Orthopedics'],
-    waitTime: 50,
-  },
-  {
-    id: 'hopital-general',
-    name: 'Hôpital Général de Montréal',
-    type: 'urgent_care',
-    lat: 45.509,
-    lng: -73.575,
-    distance: 0.9,
-    eta: 5,
-    rating: 4.2,
-    phone: '+1-514-934-8084',
-    address: '1650 Cedar Avenue, Montreal',
-    services: ['Urgent Care', 'Minor Injuries', 'Flu Shots'],
-    waitTime: 25,
-  },
-  {
-    id: 'hopital-saint-luc',
-    name: 'Hôpital Saint-Luc',
-    type: 'urgent_care',
-    lat: 45.514,
-    lng: -73.568,
-    distance: 1.2,
-    eta: 7,
-    rating: 4.0,
-    phone: '+1-514-890-8000',
-    address: '1058 Saint-Denis, Montreal',
-    services: ['Urgent Care', 'Walk-in', 'Prescriptions'],
-    waitTime: 20,
-  },
-  {
-    id: 'mcgill-clinic',
-    name: 'McGill Clinic Downtown',
-    type: 'clinic',
-    lat: 45.503,
-    lng: -73.578,
-    distance: 0.8,
-    eta: 5,
-    rating: 4.3,
-    phone: '+1-514-398-6000',
-    address: '750 Boulevard René-Lévesque W, Montreal',
-    services: ['General Practice', 'Vaccinations', 'Check-ups'],
-    waitTime: 15,
-  },
-  {
-    id: 'downtown-clinic',
-    name: 'Downtown Medical Clinic',
-    type: 'clinic',
-    lat: 45.508,
-    lng: -73.572,
-    distance: 1.3,
-    eta: 8,
-    rating: 4.1,
-    phone: '+1-514-397-7777',
-    address: '1200 McGill College Ave, Montreal',
-    services: ['General Medicine', 'Lab Work', 'Consultations'],
-    waitTime: 10,
-  },
-];
 
 const getSeverityInfo = (score: number) => {
   // SAFEGUARD: Default to lowest severity (1/Mild) for invalid scores, never default to Urgent (5)
   // This ensures parse failures or NaN don't display as maximum urgency
   const validScore = Number.isFinite(score) && score >= 1 && score <= 5 ? score : 1;
-  
+
   if (validScore <= 2) {
     return {
       label: 'Mild',
@@ -179,55 +83,99 @@ const getSeverityInfo = (score: number) => {
   }
 };
 
-const getRecommendedHospitals = (score: number): Hospital[] => {
-  const filtered = HOSPITALS.filter((h) => {
+const getRecommendedHospitals = (score: number, allHospitals: Hospital[]): Hospital[] => {
+  const filtered = allHospitals.filter((h) => {
     if (score <= 2) return h.type === 'clinic';
     if (score === 3) return h.type === 'urgent_care' || h.type === 'clinic';
     return h.type === 'emergency' || h.type === 'urgent_care';
   });
 
   // Sort by total time (ETA + wait time) - lowest total time first
-  return filtered.sort((a, b) => (a.eta + a.waitTime) - (b.eta + b.waitTime));
+  // For hospitals without live wait time, use a high default to sort them lower
+  return filtered.sort((a, b) => {
+    const aWait = a.waitTimeSource === 'live' ? a.waitTime : 999;
+    const bWait = b.waitTimeSource === 'live' ? b.waitTime : 999;
+    return (a.eta + aWait) - (b.eta + bWait);
+  });
 };
 
 function TriageResultsContent() {
   const searchParams = useSearchParams();
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  
+  const [allHospitals, setAllHospitals] = useState<Hospital[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedHospital, setSelectedHospital] = useState<Hospital | null>(null);
+
+  // Fetch hospitals from Places API
+  const fetchHospitals = async (lat: number, lng: number) => {
+    try {
+      const response = await fetch('/api/places', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          latitude: lat,
+          longitude: lng,
+          radius: 5000,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.hospitals && data.hospitals.length > 0) {
+          setAllHospitals(data.hospitals);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching hospitals:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Get user location on mount
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserLocation({
+          const loc = {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
-          });
+          };
+          setUserLocation(loc);
+          fetchHospitals(loc.lat, loc.lng);
         },
         () => {
           // Default to McGill University if location denied
           setUserLocation(MCGILL_LOCATION);
+          fetchHospitals(MCGILL_LOCATION.lat, MCGILL_LOCATION.lng);
         }
       );
     } else {
       // Default to McGill University if geolocation not supported
       setUserLocation(MCGILL_LOCATION);
+      fetchHospitals(MCGILL_LOCATION.lat, MCGILL_LOCATION.lng);
     }
   }, []);
-  
+
   // TEMP LOG: Raw query param
   const scoreParam = searchParams.get('score');
   console.log("INPUT_URGENCY_RAW", scoreParam, typeof scoreParam);
-  
+
   // SAFEGUARD: Use strict urgency helper - never default to 5, always defaults to 1
   const score = toUrgencyScore(scoreParam, 1);
-  
+
   // TEMP LOG: After validation
   console.log("COMPUTED_URGENCY", score, typeof score);
-  
+
   const severity = getSeverityInfo(score);
-  const hospitals = getRecommendedHospitals(score);
-  const [selectedHospital, setSelectedHospital] = useState<Hospital | null>(hospitals[0] || null);
+  const hospitals = getRecommendedHospitals(score, allHospitals);
+
+  // Update selected hospital when hospitals list changes
+  useEffect(() => {
+    if (hospitals.length > 0 && !selectedHospital) {
+      setSelectedHospital(hospitals[0]);
+    }
+  }, [hospitals, selectedHospital]);
 
   // TEMP LOG: Before rendering badge
   console.log("BADGE_URGENCY", score, severity.label, typeof score);
@@ -357,7 +305,18 @@ function TriageResultsContent() {
               <h3 className="text-2xl font-bold text-gray-900 mb-6">Recommended Facilities</h3>
 
               <div className="flex-1 min-h-0 overflow-y-auto pr-6 space-y-4">
-                {hospitals.map((hospital, index) => {
+                {loading ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-4"></div>
+                    <p className="text-gray-500">Finding nearby facilities...</p>
+                  </div>
+                ) : hospitals.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500">No facilities found for this severity level.</p>
+                    <p className="text-sm text-gray-400 mt-2">Try a different location or severity.</p>
+                  </div>
+                ) : (
+                hospitals.map((hospital, index) => {
                   // Build TTS payload for top recommended facility (first in list)
                   const isTopFacility = index === 0;
                   const ttsPayload: SpeechPayload | null = isTopFacility
@@ -447,7 +406,8 @@ function TriageResultsContent() {
                     </div>
                     </div>
                   );
-                })}
+                })
+                )}
               </div>
             </div>
           </div>

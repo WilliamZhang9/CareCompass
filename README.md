@@ -1,3 +1,8 @@
+# CareCompass
+
+AI-Powered Medical Triage & Hospital Finder
+
+## About
 **Inspiration**
 In medical emergencies, time is critical. The closest hospital isn’t always the fastest or best option due to traffic, wait times, or capacity. We were inspired to build a tool that helps people make smarter, time-aware decisions when it matters most.
 
@@ -35,3 +40,38 @@ What's next for Care Compass**
 
 
 Devpost link: https://devpost.com/software/care-compass-zmpdn5
+
+## Getting Started
+
+### Installation
+
+```bash
+# Clone the repository
+git clone git@github.com:WilliamZhang9/CareCompass.git
+cd CareCompass
+
+# Install dependencies
+npm install
+
+# Create environment file
+cp .env.local.example .env.local
+# Then edit .env.local with your API keys
+```
+
+### Run Development Server
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Build for Production
+
+```bash
+npm run build
+npm start
+```
+
+---
+
