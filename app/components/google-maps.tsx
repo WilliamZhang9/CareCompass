@@ -23,7 +23,7 @@ interface GoogleMapsProps {
   selectedHospitalId?: string | null;
 }
 
-// Global flag to prevent multiple script loads
+// Global flag to prevent multiple script loads - test
 let googleMapsScriptLoading = false;
 let googleMapsScriptLoaded = false;
 const googleMapsCallbacks: (() => void)[] = [];
